@@ -20,7 +20,7 @@ class Project:
         self.__end_date = end_date
         self.__description_string = description_string
         self.budget = self.Budget()
-        self.member_list = []
+        self.__member_list = []
     #Creating the setter
     def set_name(self,name):
         if len(name) < self.NAME_LENGTH:
@@ -47,7 +47,7 @@ class Project:
         def get_potential_budget(self): return self.__potential_budget
         def get_planned_budget(self): return self.__planned_budget
     def inomotp(self):
-        n = int(input('Input number of student'))
-        self.member_list = [0]*n
-        for i in range(self.member_list): self.member_list[i] = input("Input project memeber's email: ")
-
+        n = int(input('Input number of member in this project'))
+        self.__member_list = [0]*n
+        for i in range(self.__member_list): self.__member_list[i] = input("Input project member's email: ")
+    def get_mem_list(self): return self.__member_list
