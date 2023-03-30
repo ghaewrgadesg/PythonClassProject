@@ -12,7 +12,7 @@ attributes:
 object:
 abstract_properties:
     mutable(name)=true /\ optional(name)=false /\ length(name)=50
-    mutable(managerEmail)=true /\ optional(managerEmail)=false
+    mutable(managerEmail)=true /\ optional(managerEmail)=false /\ max_length(managerEmail) = 254
     mutable(startDate)=true /\ optional(startDate)=false
     mutable(endDate)=true /\ optional(endDate)=false /
     mutable(potentialBudget)=true /\ optional(potentialBudget)=false / min(potentialBudget) = 1
@@ -24,13 +24,17 @@ class Project:
     #Constants for attributes
     NAME_LENGTH = 200
     MIN_BUDGET = 1
-    
+    MAX_EMAIL_LENGTH = 254
+
     def __init__(self, name, managerEmail, startDate, endDate, potentialBudget, plannedBudget, description):
         if len(name) < self.NAME_LENGTH:
             self.__name = name
         else:
             raise ValueError("Project name must be under 200 characters")
-        self.__managerEmail = managerEmail
+        if len(managerEmail) < self.MAX_EMAIL_LENGTH:
+            self.__managerEmail = managerEmail
+        else:
+            raise ValueError("Email must be under 254 characters")
         self.__startDate = startDate
         self.__endDate = endDate
         self.__description = description
@@ -52,7 +56,10 @@ class Project:
             raise ValueError("Project name must be under 200 characters")
         
     def setManagerEmail(self, managerEmail): 
-        self.__managerEmail = managerEmail
+        if len(email) < self.MAX_EMAIL_LENGTH:
+            self.__managerEmail = managerEmail
+        else:
+            raise ValueError("Email must be under 254 characters")
 
     def setStartDate(self, startDate): 
         self.__startDate = startDate   
