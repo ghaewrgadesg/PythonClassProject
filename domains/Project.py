@@ -1,61 +1,104 @@
+from datetime import date
 """
 overview:
 attributes:  
     name: String
-    manager: email String
-    start date: String 
-    end date: String
+    managerEmail String
+    startDate: date 
+    endDate: date
+    potentialBudget: int
+    plannedBudget: int
+    description: String
 object:
 abstract_properties:
+    mutable(name)=true /\ optional(name)=false /\ length(name)=50
+    mutable(managerEmail)=true /\ optional(managerEmail)=false
+    mutable(startDate)=true /\ optional(startDate)=false
+    mutable(endDate)=true /\ optional(endDate)=false /
+    mutable(potentialBudget)=true /\ optional(potentialBudget)=false / min(potentialBudget) = 1
+    mutable(plannedBudget)=true /\ optional(plannedBudget)=false / min(plannedBudget) = 1
+    mutable(description)=true /\ optional(description)=true /
 author: Gnaff-and-my-Delusional-Kidneys
 *"""
 class Project:
     #Constants for attributes
     NAME_LENGTH = 200
-    def __init__(self, name, manager_email, start_date, end_date, description):
+    MIN_BUDGET = 1
+    
+    def __init__(self, name, managerEmail, startDate, endDate, potentialBudget, plannedBudget, description):
         if len(name) < self.NAME_LENGTH:
             self.__name = name
         else:
             raise ValueError("Project name must be under 200 characters")
-        self.__manager_email = manager_email
-        self.__start_date = start_date
-        self.__end_date = end_date
+        self.__managerEmail = managerEmail
+        self.__startDate = startDate
+        self.__endDate = endDate
         self.__description = description
-        self.budget = self.Budget()
-        self.__member_list = []
+        if potentialBudget < self.MIN_BUDGET:
+            self.__potentialBudget = potentialBudget
+        else:
+            raise ValueError("Budget must be higher than 1")
+        if plannedBudget < self.MIN_BUDGET:
+            self.__plannedBudget = plannedBudget
+        else:
+            raise ValueError("Budget must be higher than 1")
+        self.__memberList = []
+    
     #Creating the setter
-    def set_name(self,name):
+    def setName(self,name):
         if len(name) < self.NAME_LENGTH:
             self.__name = name
         else:
             raise ValueError("Project name must be under 200 characters")
-    def set_manager_email(self, manager_email): self.__manager_email = manager_email
-    def set_start_date(self, start_date): self.__start_date = start_date   
-    def set_end_date(self, end_date): self.__end_date = end_date
-    def set_description(self, description): self.__description = description
+        
+    def setManagerEmail(self, managerEmail): 
+        self.__managerEmail = managerEmail
+
+    def setStartDate(self, startDate): 
+        self.__startDate = startDate   
+
+    def setEndDate(self, endDate): 
+        self.__endDate = endDate
+
+    def setDescription(self, description): 
+        self.__description = description
+
+    def setMemberList(self, members):
+        self.__memberList = members
+
     #Creating the getter
-    def get_name(self):return self.__name
-    def get_manager_email(self): return self.__manager_email
-    def get_start_date(self): return self.__start_date
-    def get_end_date(self): return self.__end_date
-    def get_description(self): return self.__description
-    class Budget:
-        def __init__(self, potential_budget, planned_budget):
-            self.__potential_budget = potential_budget
-            self.__planned_budget = planned_budget
-        def set_potential_budget(self,potential_budget): self.__potential_budget = potential_budget
-        def set_planned_budget(self,planned_budget): self.__planned_budget = planned_budget
-        def get_potential_budget(self): return self.__potential_budget
-        def get_planned_budget(self): return self.__planned_budget
-    #Input number of project members and their information
-    def inopmati(self):
-        while True:
-            try:
-                n = int(input('Input number of member in this project'))
-            except ValueError: 
-                print('Please try again')
-                continue
-            else: break
-        self.__member_list = [0]*n
-        for i in range(self.__member_list): self.__member_list[i] = input("Input project member's email: ") 
-    def get_mem_list(self): return self.__member_list
+    def getName(self):
+        return self.__name
+
+    def getManagerEmail(self): 
+        return self.__managerEmail
+
+    def getStartDate(self): 
+        return self.__startDate
+
+    def getEndDate(self): 
+        return self.__endDate
+
+    def getDescription(self):
+        return self.__description
+
+    def getMemberList(self):
+        return self.__memberList
+
+    def set_potentialBudget(self,potentialBudget): 
+        if potentialBudget < self.MIN_BUDGET:
+            self.__potentialBudget = potentialBudget
+        else:
+            raise ValueError("Budget must be higher than 1")
+
+    def set_plannedBudget(self,plannedBudget): 
+        if plannedBudget < self.MIN_BUDGET:
+            self.__plannedBudget = plannedBudget
+        else:
+            raise ValueError("Budget must be higher than 1")
+
+    def get_potentialBudget(self): 
+        return self.__potentialBudget
+    
+    def get_plannedBudget(self): 
+        return self.__plannedBudget
