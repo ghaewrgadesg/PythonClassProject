@@ -18,7 +18,7 @@ INSERT INTO `Tasks` (`name`, `project_name`, `cost`, `start_date`, `end_date`, `
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`ProjectBudget`
 -- -----------------------------------------------------
-INSERT INTO `ProjectBudget` (`project_name`, `potential_budget`, `planned_budget`) VALUES ('Killing the world', 100000, 200000);
+INSERT INTO `ProjectBudget` (`project_name`, `potential_budget`, `plan_budget`) VALUES ('Killing the world', 100000, 200000);
 
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`ProjectMember`

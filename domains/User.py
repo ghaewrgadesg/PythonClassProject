@@ -1,4 +1,4 @@
-
+import mysql.connector
 """
 overview: Users are the people who use the program
 attributes:  
@@ -27,9 +27,10 @@ class User:
             self.__username = username
         else:
             raise ValueError("Username must be under 50 characters")
-        if len(password) > self.MIN_PASSWORD_LENGTH and len(password) < self.MAX_PASSWORD_LENGTH:
+        if len(password) >= self.MIN_PASSWORD_LENGTH and len(password) <= self.MAX_PASSWORD_LENGTH:
             self.__password = password
         else:
+            print(len(password))
             raise ValueError("Password must be over 8 characters and under 254 characters")
         if len(email) < self.MAX_EMAIL_LENGTH:
             self.__email = email
@@ -71,3 +72,16 @@ class User:
     
     def getEmail(self):
         return self.__email
+    
+    def save(self):
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="Ch0keYourselfT0Sle#p"
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        print("test")
+        mycursor.execute("INSERT IGNORE INTO `Users` (`email`, `name`, `username`, `password`) VALUES ('{}', '{}', '{}', '{}');".format(self.__email, self.__name, self.__username, self.__password))
+        #commit the changes to database
+        mydb.commit()
