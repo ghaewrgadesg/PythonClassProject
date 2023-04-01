@@ -2,7 +2,8 @@ from domains import Task, Project, User
 import tkinter as tk
 from tkinter import ttk
 import mysql.connector
-
+from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
+from ProjectSelectorGUI import ProjectSelectorView, ProjectSelectorController, ProjectSelectorApp
 class LoginView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -10,7 +11,7 @@ class LoginView(ttk.Frame):
         #label
         self.usernameLabel = ttk.Label(self, text = 'Username')
         self.usernameLabel.grid(row = 1, column = 0, columnspan = 2)
-        self.passwordLabel = ttk.Label(self, text = 'Password', show="*")
+        self.passwordLabel = ttk.Label(self, text = 'Password')
         self.passwordLabel.grid(row = 3, column = 0, columnspan = 2)
 
         #textbox
@@ -18,7 +19,7 @@ class LoginView(ttk.Frame):
         self.passwordVar = tk.StringVar()
         self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 30)
         self.usernameEntry.grid(row = 2, column = 0, columnspan = 2, sticky = tk.NSEW)
-        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 30)
+        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 30, show="*")
         self.passwordEntry.grid(row = 4, column = 0, columnspan = 2, sticky = tk.NSEW)
 
         #Login button
@@ -28,6 +29,10 @@ class LoginView(ttk.Frame):
         #register button
         self.registerButton = ttk.Button(self, text = "Register", command=self.clickRegister)
         self.registerButton.grid(row = 5, column = 1, padx = 10)
+
+        #message 
+        self.messageLabel = ttk.Label(self, text='', foreground='red')
+        self.messageLabel.grid(row=6, column=0, sticky=tk.W)
 
         #set the controller
         self.controller = None
@@ -39,13 +44,31 @@ class LoginView(ttk.Frame):
         if self.controller:
             self.controller.login(self.usernameVar.get(), self.passwordVar.get())
     
+    def showError(self, message):
+        self.messageLabel['text'] = message
+        self.messageLabel['foreground'] = 'red'
+        self.messageLabel.after(3000, self.hideMessage)
+ 
+    def showMessage(self, message):
+        self.messageLabel['text'] = message
+        self.messageLabel['foreground'] = 'green'
+        self.messageLabel.after(3000, self.hideMessage)
+
+    def hideMessage(self):
+        """
+        Hide the message
+        :return:
+        """
+        self.messageLabel['text'] = ''
+
     def clickRegister(self):
         if self.controller:
             self.controller.register()
 
 class LoginController:
-    def __init__(self, view):
+    def __init__(self, view, app):
         self.view = view
+        self.app = app
 
     def login(self,username, password):
         mydb = mysql.connector.connect(
@@ -59,22 +82,30 @@ class LoginController:
         loginInfo = mycursor.fetchall()
         for i in loginInfo:
             if username == i[0] and password == i[1]:
-                print("Login Succedded")
+                mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = '{}'".format(i[0]))
+                loginInfo = mycursor.fetchall()[0]
+                loginUser = User(loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3])
+                self.view.showMessage("Login Succedded")
+                self.app.destroy()
+                self.Selectorapp = ProjectSelectorApp(loginUser)
+                self.Selectorapp.mainloop()
+            else:
+                self.view.showError("Invalid info")
     
     def register(self):
-        self.view.quit()
+        self.registerWindow = RegisterApp()
 class LoginApp(tk.Tk):
     def __init__(self):
         super().__init__()
         
-        self.title = "Login"
+        self.title("Login")
 
         #create a view and place it on the root window
         view = LoginView(self)
         view.grid(row = 0, column = 0, padx = 10, pady = 10)
 
         #create the login controller
-        controller = LoginController(view)
+        controller = LoginController(view,self)
 
         view.setController(controller)
 if __name__ == '__main__':
