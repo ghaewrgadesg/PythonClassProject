@@ -4,6 +4,7 @@ from tkinter import ttk
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
 from ProjectSelectorGUI import ProjectSelectorView, ProjectSelectorController, ProjectSelectorApp
+
 class LoginView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -78,8 +79,6 @@ class LoginController:
         )
     
     def login(self,username, password):
-
-        
         mycursor = self.mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
         mycursor.execute("SELECT `username`, `password` FROM Users")
@@ -97,6 +96,7 @@ class LoginController:
     
     def register(self):
         self.registerWindow = RegisterApp()
+
 class LoginApp(tk.Tk):
     def __init__(self):
         super().__init__()

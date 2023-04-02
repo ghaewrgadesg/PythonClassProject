@@ -5,8 +5,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesno
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
-from ProjectSelectorGUI import ProjectSelectorView, ProjectSelectorController, ProjectSelectorApp
-from taskAdderGUI import TaskAdderApp, TaskAdderController, TaskAdderView
+from TaskAdderGUI import TaskAdderApp, TaskAdderController, TaskAdderView
 class TaskWindowView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -118,7 +117,7 @@ class TaskWindowController:
         )
         mycursor = self.mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("select `name` from `Tasks` where `project_name` = '{}' ORDER BY `start_date` ASC".format(app.projectName))
+        mycursor.execute("select `name` from `Tasks` where `project_name` = '{}' ORDER BY `start_date` ASC".format(app.project.getName()))
         tasks= mycursor.fetchall()
         for i in tasks:
             view.taskList.append(i[0])
@@ -134,19 +133,15 @@ class TaskWindowController:
         self.mydb.reconnect(attempts=1, delay=0)
         mycursor = self.mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("select `name` from `Tasks` where `project_name` = '{}' ORDER BY `start_date` ASC".format(self.app.projectName))
+        mycursor.execute("select `name` from `Tasks` where `project_name` = '{}' ORDER BY `start_date` ASC".format(self.app.project.getName()))
         tasks= mycursor.fetchall()
         self.view.taskList = []
-        print(self.view.taskList)
-        print(tasks)
         for i in tasks:
             self.view.taskList.append(i[0])
-        print(self.view.taskList)
         self.view.tList.set(self.view.taskList)
     
     def addTask(self):
-        taskAdderWindow = TaskAdderApp(self.app.projectName)
-        print("STOP")
+        taskAdderWindow = TaskAdderApp(self.app.project.getName())
         self.app.wait_window(taskAdderWindow)
         self.refreshTaskList()
 
@@ -181,7 +176,7 @@ class TaskWindowController:
             self.view.taskDescriptionBox.delete('1.0', tk.END)
             self.view.taskDescriptionBox['state'] = 'disabled'
 
-        mycursor.execute("select `member_email` from `AssignedTaskMember` where (`task_name` = '{}') AND (`project_name` = '{}'); ".format(toBeChecked, app.projectName))
+        mycursor.execute("select `member_email` from `AssignedTaskMember` where (`task_name` = '{}') AND (`project_name` = '{}'); ".format(toBeChecked, self.app.project.getName()))
         members = mycursor.fetchall()
         self.view.memberList = []
         for i in members:

@@ -95,30 +95,51 @@ class Project:
     def getMemberList(self):
         return self.__memberList
 
-    def set_potentialBudget(self,potentialBudget): 
-        if potentialBudget < self.MIN_BUDGET:
+    def setPotentialBudget(self,potentialBudget): 
+        if potentialBudget > self.MIN_BUDGET:
             self.__potentialBudget = potentialBudget
         else:
             raise ValueError("Budget must be higher than 1")
 
-    def set_plannedBudget(self,plannedBudget): 
-        if plannedBudget < self.MIN_BUDGET:
+    def setPlannedBudget(self,plannedBudget): 
+        if plannedBudget > self.MIN_BUDGET:
             self.__plannedBudget = plannedBudget
         else:
             raise ValueError("Budget must be higher than 1")
 
-    def get_potentialBudget(self): 
+    def getPotentialBudget(self): 
         return self.__potentialBudget
     
-    def get_plannedBudget(self): 
+    def getPlannedBudget(self): 
         return self.__plannedBudget
+    
+    
+    def update(self):
+        """
+        Update the info of this project in the database
+        :return:
+        """
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        mycursor.execute("UPDATE `Project` SET `manager_email` = '{}', `start_date` = '{}', `end_date` = '{}', `description` = '{}' WHERE `name` = '{}';".format(self.__managerEmail, self.__startDate, self.__endDate, self.__description, self.__name))
+        mycursor.execute("UPDATE`ProjectBudget` SET `potential_budget` = {}, `plan_budget` = {} WHERE `project_name` = '{}' ;".format(self.__potentialBudget, self.__plannedBudget, self.__name))
+        for i in self.__memberList:
+            mycursor.execute("INSERT IGNORE INTO `projectmember` (`member_email`, `project_name`) VALUES ('{}', '{}');".format(i[1], self.__name)) 
+        #commit the changes
+        mydb.commit()
     
     def save(self):
         """
         save the data of this project into the database
         :return:
         """
-        global databasePassword
         with open("databasePassword.txt") as f:
             databasePassword = f.readline().rstrip()
         mydb = mysql.connector.connect(

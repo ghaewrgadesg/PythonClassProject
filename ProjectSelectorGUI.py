@@ -7,6 +7,8 @@ import datetime
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
 from ProjectAdder import ProjectAdderApp, ProjectAdderController, ProjectAdderView
+from MainWindowGUI import MainWindowApp, MainWindowController, MainWindowView
+
 class ProjectSelectorView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -155,7 +157,18 @@ class ProjectSelectorController:
         descriptionText['state'] = 'disabled'
     
     def chooseProject(self):
-        pass
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        currentSelection = self.view.projectListBox.curselection()
+        toBeChecked = self.view.projectListBox.get(currentSelection[0])
+        mycursor.execute("SELECT `name`,`manager_email`, `start_date`, `end_date`, `description` FROM `Project` WHERE (`name` = '{}');".format(toBeChecked))
+        projectInfo = mycursor.fetchall()[0]
+        mycursor.execute("SELECT `potential_budget`, `plan_budget` FROM `ProjectBudget` WHERE (`project_name` = '{}');".format(toBeChecked))
+        projectBudgetInfo = mycursor.fetchall()[0]
+        chosenProject = Project(projectInfo[0],projectInfo[1],projectInfo[2], projectInfo[3],projectBudgetInfo[0],projectBudgetInfo[1],projectInfo[4])
+        self.app.destroy()
+        mainWindow = MainWindowApp(self.app.user,chosenProject)
+        mainWindow.mainloop()
 
 class ProjectSelectorApp(tk.Tk):
     def __init__(self,user):

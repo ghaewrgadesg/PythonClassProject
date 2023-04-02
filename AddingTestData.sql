@@ -5,12 +5,13 @@ USE InformationManagementSystem;
 INSERT INTO `Users` (`email`, `name`, `username`, `password`) 
 VALUES ('bthung2003@gmail.com', 'BTH', 'bthung2003', 'SeeTheLight');
 INSERT INTO `Users` (`email`, `name`, `username`, `password`) VALUES ('bthung2420@gmail.com', 'BTD', 'duyngu2003', 'KillTheLight');
-
+INSERT INTO `Users` (`email`, `name`, `username`, `password`) 
+VALUES ('bthung22@gmail.com', 'VTP', 'phongGaming', 'SeeTheLight');
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`Project`
 -- -----------------------------------------------------
-INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`) VALUES('Killing the world', 'bthung2003@gmail.com', '2023-4-20', '2023-5-20');
-
+INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES('Killing the world', 'bthung2003@gmail.com', '2023-4-20', '2023-5-20', 'to test is to prosper');
+INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES('Saving', 'bthung2003@gmail.com', '2023-4-23', '2023-5-25', 'to save is to survive');
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`Tasks`
 -- -----------------------------------------------------

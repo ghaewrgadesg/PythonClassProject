@@ -3,46 +3,30 @@ import tkinter as tk
 from tkinter import ttk
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
-from ProjectSelectorGUI import ProjectSelectorView, ProjectSelectorController, ProjectSelectorApp
-class LoginView(ttk.Frame):
+from TaskWindowGUI import TaskWindowApp, TaskWindowController, TaskWindowView
+from ProjectInfoGUI import ProjectInfoWindowApp, ProjectInfoWindowController, ProjectInfoWindowView
+class MainWindowView(ttk.Notebook):
     def __init__(self, parent):
         super().__init__(parent)
         #create widgets
-        #label
-        self.usernameLabel = ttk.Label(self, text = 'Username')
-        self.usernameLabel.grid(row = 1, column = 0, columnspan = 2)
-        self.passwordLabel = ttk.Label(self, text = 'Password')
-        self.passwordLabel.grid(row = 3, column = 0, columnspan = 2)
-
-        #textbox
-        self.usernameVar = tk.StringVar()
-        self.passwordVar = tk.StringVar()
-        self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 30)
-        self.usernameEntry.grid(row = 2, column = 0, columnspan = 2, sticky = tk.NSEW)
-        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 30, show="*")
-        self.passwordEntry.grid(row = 4, column = 0, columnspan = 2, sticky = tk.NSEW)
-
-        #Login button
-        self.loginButton = ttk.Button(self, text = "Login", command=self.clickLogin)
-        self.loginButton.grid(row = 5, column = 0, padx=10)
-
-        #register button
-        self.registerButton = ttk.Button(self, text = "Register", command=self.clickRegister)
-        self.registerButton.grid(row = 5, column = 1, padx = 10)
-
-        #message 
-        self.messageLabel = ttk.Label(self, text='', foreground='red')
-        self.messageLabel.grid(row=6, column=0, sticky=tk.W)
-
+        #Notebook Windows
+        self.projectInfoWindow = ProjectInfoWindowView(self)
+        self.projectInfoWindow.pack(fill = 'both', expand=True)
+        self.add(self.projectInfoWindow, text= 'Project Info')
+        
+        self.taskWindow = TaskWindowView(self)
+        self.taskWindow.pack(fill = 'both', expand=True)
+        self.add(self.taskWindow, text= 'Tasks')
+        
         #set the controller
         self.controller = None
-
+        self.bind('<<NotebookTabChanged>>',self.onTabChange)
     def setController(self, controller):
         self.controller = controller
 
-    def clickLogin(self):
+    def clickMainWindow(self):
         if self.controller:
-            self.controller.login(self.usernameVar.get(), self.passwordVar.get())
+            self.controller.MainWindow(self.usernameVar.get(), self.passwordVar.get())
     
     def showError(self, message):
         self.messageLabel['text'] = message
@@ -64,52 +48,66 @@ class LoginView(ttk.Frame):
     def clickRegister(self):
         if self.controller:
             self.controller.register()
+    
+    def onTabChange(self,event):
+        if self.controller:
+            self.controller.onTabChanged(event)
 
-class LoginController:
+
+class MainWindowController:
     def __init__(self, view, app):
         self.view = view
         self.app = app
-
-    def login(self,username, password):
-        mydb = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Ch0keYourselfT0Sle#p"
-        )
-        mycursor = mydb.cursor()
-        mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("SELECT `username`, `password` FROM Users")
-        loginInfo = mycursor.fetchall()
-        for i in loginInfo:
-            if username == i[0] and password == i[1]:
-                mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = '{}'".format(i[0]))
-                loginInfo = mycursor.fetchall()[0]
-                loginUser = User(loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3])
-                self.app.destroy()
-                self.Selectorapp = ProjectSelectorApp(loginUser)
-                self.Selectorapp.mainloop()
-            else:
-                self.view.showError("Invalid info")
     
-    def register(self):
-        self.registerWindow = RegisterApp()
-class LoginApp(tk.Tk):
-    def __init__(self):
+    def onTabChanged(self,event):
+        tab = event.widget.tab('current')['text']
+        if tab == 'Project Info':
+            self.view.projectInfoWindow.refreshSelfInfo()
+
+
+
+class MainWindowApp(tk.Tk):
+    def __init__(self, user, project):
         super().__init__()
-        
-        self.title("Login")
+        self.user = user
+        self.project = project
+        self.title("MainWindow")
 
         #create a view and place it on the root window
-        view = LoginView(self)
+        view = MainWindowView(self)
         view.grid(row = 0, column = 0, padx = 10, pady = 10)
 
-        #create the login controller
-        controller = LoginController(view,self)
+
+        #create the taskWindow controller
+        taskWindowControl = TaskWindowController(view.taskWindow, self)
+        view.taskWindow.setController(taskWindowControl)
+        
+        #create the projectInfo controller
+        projectInfoControl = ProjectInfoWindowController(view.projectInfoWindow,self)
+        view.projectInfoWindow.setController(projectInfoControl)
+
+
+        #create the MainWindow controller
+        controller = MainWindowController(view,self)
 
         view.setController(controller)
 if __name__ == '__main__':
-    global databasePassword
     with open("databasePassword.txt") as f:
         databasePassword = f.readline().rstrip()
-    app = LoginApp()
+    mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+    mycursor = mydb.cursor()
+    mycursor.execute("USE InformationManagementSystem;")
+    mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = 'bthung2003';")
+    loginInfo = mycursor.fetchall()[0]
+    loginUser = User(loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3])
+    mycursor.execute("SELECT `name`,`manager_email`, `start_date`, `end_date`, `description` FROM `Project` WHERE (`name` = 'Killing the world');")
+    projectInfo = mycursor.fetchall()[0]
+    mycursor.execute("SELECT `potential_budget`, `plan_budget` FROM `ProjectBudget` WHERE (`project_name` = 'Killing the world');")
+    projectBudgetInfo = mycursor.fetchall()[0]
+    chosenProject = Project(projectInfo[0],projectInfo[1],projectInfo[2], projectInfo[3],projectBudgetInfo[0],projectBudgetInfo[1],projectInfo[4])
+    app = MainWindowApp(loginUser,chosenProject)
     app.mainloop()

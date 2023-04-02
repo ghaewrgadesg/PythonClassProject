@@ -10,7 +10,8 @@ create table if not exists `Users`(
     `username` varchar(50) NOT NULL,
     `password` varchar(100) NOT NULL,
     Primary key (`email`),
-    Unique( `name`, `username`, `password`)
+    Unique(`username`),
+    Unique(`password`)
 );
 
 -- -----------------------------------------------------
@@ -45,7 +46,7 @@ create table if not exists `Tasks`(
     constraint `fk_project_name`
     foreign key (`project_name`) references Project(`name`)
     ON DELETE CASCADE
-	ON UPDATE NO ACTION
+	ON UPDATE CASCADE
 );
 
 -- -----------------------------------------------------
@@ -55,10 +56,11 @@ create table if not exists `ProjectBudget`(
 	`project_name` varchar(200) NOT NULL,
     `potential_budget` int NOT NULL,
     `plan_budget` int NOT NULL,
+    primary key(`project_name`),
     constraint `fk_pBudget_project_name`
 		foreign key (`project_name`) references Project(`name`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION
+		ON UPDATE CASCADE
 );
 
 -- -----------------------------------------------------
@@ -67,14 +69,15 @@ create table if not exists `ProjectBudget`(
 create table if not exists `ProjectMember`(
 	`member_email` varchar(254) NOT NULL,
     `project_name` varchar(200) NOT NULL,
+    Primary key(`member_email`,`project_name`),
     constraint `fk_pMember_member_email`
     foreign key (`member_email`) references Users(`email`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION,
+		ON UPDATE CASCADE,
     constraint `fk_pMember_project_name`
 	foreign key (`project_name`) references Project(`name`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION
+		ON UPDATE CASCADE
 );
     
 -- -----------------------------------------------------
@@ -88,14 +91,14 @@ create table if not exists `AssignedTaskMember`(
     constraint `fk_aTMember_task_name` 
 		foreign key (`task_name`) references Tasks(`name`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION,
+		ON UPDATE CASCADE,
     constraint `fk_atMember_member_email`
     foreign key (`member_email`) references Users(`email`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION,
+		ON UPDATE CASCADE,
     constraint `fk_aTMember_project_name`
     foreign key (`project_name`) references Project(`name`)
 		ON DELETE CASCADE
-		ON UPDATE NO ACTION
+		ON UPDATE CASCADE
 );
 	
