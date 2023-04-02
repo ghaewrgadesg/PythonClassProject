@@ -1,4 +1,5 @@
 from datetime import date
+import mysql.connector
 """
 overview:
 attributes:  
@@ -25,6 +26,8 @@ class Project:
     NAME_LENGTH = 200
     MIN_BUDGET = 1
     MAX_EMAIL_LENGTH = 254
+    MIN_PLANNED_BUDGET = 0
+
 
     def __init__(self, name, managerEmail, startDate, endDate, potentialBudget, plannedBudget, description):
         if len(name) < self.NAME_LENGTH:
@@ -38,14 +41,14 @@ class Project:
         self.__startDate = startDate
         self.__endDate = endDate
         self.__description = description
-        if potentialBudget < self.MIN_BUDGET:
+        if potentialBudget > self.MIN_BUDGET:
             self.__potentialBudget = potentialBudget
         else:
-            raise ValueError("Budget must be higher than 1")
-        if plannedBudget < self.MIN_BUDGET:
+            raise ValueError("Potentil budget must be higher than 1")
+        if plannedBudget >= self.MIN_PLANNED_BUDGET:
             self.__plannedBudget = plannedBudget
         else:
-            raise ValueError("Budget must be higher than 1")
+            raise ValueError("Budget must be higher or equal to 0")
         self.__memberList = []
     
     #Creating the setter
@@ -56,7 +59,7 @@ class Project:
             raise ValueError("Project name must be under 200 characters")
         
     def setManagerEmail(self, managerEmail): 
-        if len(email) < self.MAX_EMAIL_LENGTH:
+        if len(managerEmail) < self.MAX_EMAIL_LENGTH:
             self.__managerEmail = managerEmail
         else:
             raise ValueError("Email must be under 254 characters")
@@ -109,3 +112,33 @@ class Project:
     
     def get_plannedBudget(self): 
         return self.__plannedBudget
+    
+    def save(self):
+        """
+        save the data of this project into the database
+        :return:
+        """
+        global databasePassword
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        print("test")
+        """ name: String
+    managerEmail String
+    startDate: date 
+    endDate: date
+    potentialBudget: int
+    plannedBudget: int
+    description: String
+    """
+        mycursor.execute("INSERT IGNORE INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES ('{}', '{}', '{}', '{}', '{}');".format(self.__name, self.__managerEmail, self.__startDate, self.__endDate, self.__description))
+        mycursor.execute("INSERT IGNORE INTO `ProjectBudget` (`project_name`, `potential_budget`, `plan_budget`) VALUES ('{}',{},{});".format(self.__name, self.__potentialBudget, self.__plannedBudget))
+        mycursor.execute("INSERT IGNORE INTO `ProjectMember` (`member_email`, `project_name`) VALUES ('{}','{}');".format(self.__managerEmail, self.__name)) 
+        #commit the changes to database
+        mydb.commit()

@@ -74,10 +74,14 @@ class User:
         return self.__email
     
     def save(self):
+        global databasePassword
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+            print(databasePassword)
         mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Ch0keYourselfT0Sle#p"
+        password=databasePassword
         )
         mycursor = mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")

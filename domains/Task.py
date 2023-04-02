@@ -1,4 +1,5 @@
 from datetime import date
+import mysql.connector
 """
 overview:
 attributes:  
@@ -9,7 +10,7 @@ attributes:
     status: String
 object:
 abstract_properties:
-    mutable(cost)=true /\ optional(cost)=false
+    mutable(cost)=true /\ optional(cost)=false /\ min(cost) = 1
     mutable(name)=true /\ optional(name)=false /\ length(username)= 100
     mutable(startDate)=true /\ optional(startDate)=false
     mutable(endDate)=true /\ optional(endDate)=false /
@@ -19,7 +20,8 @@ author: Gnaff-and-my-Delusional-Kidneys
 class Task:
     #Constants for attributes
     NAME_LENGTH = 100
-    def __init__(self, name, startDate, endDate, status, description):
+    MIN_COST = 1
+    def __init__(self, name, startDate, endDate, status, description, cost):
         if len(name) < self.NAME_LENGTH:
             self.__name = name
         else:
@@ -29,6 +31,10 @@ class Task:
         self.__status = status
         self.__description = description
         self.__assignedMemberList = []
+        if cost > self.MIN_COST:
+            self.__cost = cost
+        else:
+            raise ValueError("cost must be higher than 1")
     
     #Creating the setter
     def setName(self,name):
@@ -70,3 +76,32 @@ class Task:
     
     def get_mem_list(self):
         return self.__assignedMemberList
+    
+    #saving the task to the database
+    def save(self, projectName):
+        """
+        save the data of this task into the database
+        :return:
+        """
+        global databasePassword
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        print("test")
+        """ 
+        cost: Int
+        name: String
+        startDate: date 
+        endDate: date
+        status: String
+        """
+        mycursor.execute("INSERT IGNORE INTO `Tasks` (`name`, `start_date`, `end_date`, `description`, `cost`, `project_name`) VALUES ('{}', '{}', '{}', '{}', '{}', '{}');".format(self.__name,  self.__startDate, self.__endDate, self.__description, self.__cost, projectName))
+        #commit the changes to database
+
+        mydb.commit()

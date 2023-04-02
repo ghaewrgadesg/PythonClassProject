@@ -23,7 +23,10 @@ create table if not exists `Project`(
     `end_date` date NOT NULL,
     `description` text,
     Primary key (`name`),
-    foreign key (`manager_email`) references Users(`email`)
+	constraint `fk_manager_email`
+		foreign key (`manager_email`) references Users(`email`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION
 );
 
     
@@ -39,7 +42,10 @@ create table if not exists `Tasks`(
     `status` varchar(20) NOT NULL,
     `description` text,
     Primary key(`name`,`project_name`),
+    constraint `fk_project_name`
     foreign key (`project_name`) references Project(`name`)
+    ON DELETE CASCADE
+	ON UPDATE NO ACTION
 );
 
 -- -----------------------------------------------------
@@ -49,7 +55,10 @@ create table if not exists `ProjectBudget`(
 	`project_name` varchar(200) NOT NULL,
     `potential_budget` int NOT NULL,
     `plan_budget` int NOT NULL,
-    foreign key (`project_name`) references Project(`name`)
+    constraint `fk_pBudget_project_name`
+		foreign key (`project_name`) references Project(`name`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION
 );
 
 -- -----------------------------------------------------
@@ -58,9 +67,14 @@ create table if not exists `ProjectBudget`(
 create table if not exists `ProjectMember`(
 	`member_email` varchar(254) NOT NULL,
     `project_name` varchar(200) NOT NULL,
-    foreign key (`member_email`) references Users(`email`),
-    foreign key (`project_name`) references Project(`name`)
-	
+    constraint `fk_pMember_member_email`
+    foreign key (`member_email`) references Users(`email`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION,
+    constraint `fk_pMember_project_name`
+	foreign key (`project_name`) references Project(`name`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION
 );
     
 -- -----------------------------------------------------
@@ -71,9 +85,17 @@ create table if not exists `AssignedTaskMember`(
     `project_name` varchar(200) NOT NULL,
     `task_name` varchar(100) NOT NULL,
     primary key(`task_name`, `member_email`, `project_name`),
-    foreign key (`task_name`) references Tasks(`name`),
-    foreign key (`member_email`) references Users(`email`),
+    constraint `fk_aTMember_task_name` 
+		foreign key (`task_name`) references Tasks(`name`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION,
+    constraint `fk_atMember_member_email`
+    foreign key (`member_email`) references Users(`email`)
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION,
+    constraint `fk_aTMember_project_name`
     foreign key (`project_name`) references Project(`name`)
-    
+		ON DELETE CASCADE
+		ON UPDATE NO ACTION
 );
 	

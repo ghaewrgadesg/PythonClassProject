@@ -2,7 +2,8 @@ USE InformationManagementSystem;
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`Users`
 -- -----------------------------------------------------
-INSERT INTO `Users` (`email`, `name`, `username`, `password`) VALUES ('bthung2003@gmail.com', 'BTH', 'bthung2003', 'SeeTheLight');
+INSERT INTO `Users` (`email`, `name`, `username`, `password`) 
+VALUES ('bthung2003@gmail.com', 'BTH', 'bthung2003', 'SeeTheLight');
 INSERT INTO `Users` (`email`, `name`, `username`, `password`) VALUES ('bthung2420@gmail.com', 'BTD', 'duyngu2003', 'KillTheLight');
 
 -- -----------------------------------------------------
@@ -18,7 +19,7 @@ INSERT INTO `Tasks` (`name`, `project_name`, `cost`, `start_date`, `end_date`, `
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`ProjectBudget`
 -- -----------------------------------------------------
-INSERT INTO `ProjectBudget` (`project_name`, `potential_budget`, `plan_budget`) VALUES ('Killing the world', 100000, 200000);
+INSERT INTO `ProjectBudget` (`project_name`, `potential_budget`, `plan_budget`) VALUES ('Killing the world', 100000, 200);
 
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`ProjectMember`

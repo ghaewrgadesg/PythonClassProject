@@ -1,30 +1,30 @@
-from domains import Task, Project, User
+from domains import Task, Task, User
 import tkinter as tk
 from tkinter import ttk
 import mysql.connector
 from datetime import date
 from tkcalendar import Calendar
 from tkinter.scrolledtext import ScrolledText
-class ProjectAdderView(ttk.Frame):
+class TaskAdderView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         
         #Create widgets
         #labels
-        self.nameLabel = ttk.Label(self, text="Project name")
+        self.nameLabel = ttk.Label(self, text="Task name")
         self.nameLabel.grid(row= 0, column= 0, columnspan= 2)
         self.startDateLabel = ttk.Label(self, text= "Start Date")
         self.startDateLabel.grid(row = 2, column = 0, columnspan= 2)
         self.endDateLabel = ttk.Label(self, text= "End Date")
         self.endDateLabel.grid(row = 4, column= 0, columnspan= 2)
-        self.potentialBudgetLabel = ttk.Label(self, text="Potential Budget")
-        self.potentialBudgetLabel.grid(row = 6, column = 0, columnspan=2)
+        self.costLabel = ttk.Label(self, text="Cost")
+        self.costLabel.grid(row = 6, column = 0, columnspan=2)
         self.descriptionLabel = ttk.Label(self, text= "Description")
         self.descriptionLabel.grid(row = 8, column = 0, columnspan= 2)
 
         #Textbox
         self.pNameVar = tk.StringVar()
-        self.potBudget = tk.StringVar()
+        self.costVar = tk.StringVar()
         self.nameEntry = ttk.Entry(self, textvariable=self.pNameVar, width = 40)
         self.nameEntry.grid(row = 1, columnspan=2)
 
@@ -35,16 +35,16 @@ class ProjectAdderView(ttk.Frame):
         self.endDateButton.grid(row = 5, column = 0, columnspan= 2)
 
         #more textbox
-        self.potentialBudgetEntry = ttk.Entry(self, textvariable=self.potBudget, width = 40)
-        self.potentialBudgetEntry.grid(row = 7, columnspan= 2)
+        self.costEntry = ttk.Entry(self, textvariable=self.costVar, width = 40)
+        self.costEntry.grid(row = 7, columnspan= 2)
 
         #Description textbox
         self.description = ScrolledText(self, width=50, height=10)
         self.description.grid(row = 9, columnspan= 2)
 
-        #Buttons to create the project and to cancel
-        self.createProjectButton = ttk.Button(self, text= "Create the project", command= self.clickCreateProject)
-        self.createProjectButton.grid(row = 10, column = 0)
+        #Buttons to create the Task and to cancel
+        self.createTaskButton = ttk.Button(self, text= "Create the Task", command= self.clickCreateTask)
+        self.createTaskButton.grid(row = 10, column = 0)
         self.cancelButton = ttk.Button(self, text= "Cancel", command= self.clickCancel)
         self.cancelButton.grid(row=10, column = 1)
 
@@ -89,12 +89,12 @@ class ProjectAdderView(ttk.Frame):
         if self.controller:
             self.controller.cancel()
     
-    def clickCreateProject(self):
+    def clickCreateTask(self):
         if self.controller:
-            self.controller.createProject(self.pNameVar.get(), self.startDateButton['text'], self.endDateButton['text'], self.potBudget.get(), self.description.get('1.0', 'end'))
+            self.controller.createTask(self.pNameVar.get(), self.startDateButton['text'], self.endDateButton['text'], self.costVar.get(), self.description.get('1.0', 'end'))
 
     
-class ProjectAdderController:
+class TaskAdderController:
     def __init__(self, view, app):
         self.view = view
         self.app = app
@@ -143,33 +143,32 @@ class ProjectAdderController:
     def cancel(self):
         self.app.destroy()
 
-    def createProject(self, projectName, startDate, endDate, potentialBudget, description):
+    def createTask(self, taskName, startDate, endDate, cost, description):
         try:
-            test = Project(projectName, self.app.curUser.getEmail(), startDate, endDate, int(potentialBudget), 0, description)
-            test.save()
+            test = Task(taskName, startDate, endDate, 'NOT STARTED', description, int(cost))
+            test.save(self.app.projectName)
             self.app.destroy()
         except ValueError as error:
             self.view.showError(error)
 
-class ProjectAdderApp(tk.Toplevel):
-    def __init__(self, user):
+class TaskAdderApp(tk.Toplevel):
+    def __init__(self, projectName):
         super().__init__()
-        
-        self.title("Add a project")
-        self.curUser = user
+        self.projectName = projectName
+        self.title("Add a Task")
         #create a view and place it on the root window
-        view = ProjectAdderView(self)
+        view = TaskAdderView(self)
         view.grid(row = 0, column = 0, padx = 10, pady = 10)
 
         #create the login controller
-        controller = ProjectAdderController(view,self)
+        controller = TaskAdderController(view,self)
 
         view.setController(controller)
 if __name__ == '__main__':
     global databasePassword
     with open("databasePassword.txt") as f:
         databasePassword = f.readline().rstrip()
-    app = ProjectAdderApp()
+    app = TaskAdderApp()
     app.mainloop()
 
 

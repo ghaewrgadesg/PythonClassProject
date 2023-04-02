@@ -1,8 +1,12 @@
 from domains import Task, Project, User
 import tkinter as tk
 from tkinter import ttk
+from tkinter.messagebox import askyesno
+from tkinter.scrolledtext import ScrolledText
+import datetime
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
+from ProjectAdder import ProjectAdderApp, ProjectAdderController, ProjectAdderView
 class ProjectSelectorView(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -20,6 +24,10 @@ class ProjectSelectorView(ttk.Frame):
             height =30
         )
         self.projectListBox.grid(row = 1, columnspan=3, sticky = tk.NSEW)
+
+        #bind double click action to listbox
+        self.projectListBox.bind('<Double-1>', self.clickTwiceChooseProject)
+
 
         #remove project button
         self.removeProjectButton = ttk.Button(self, text = "  -  ", command=self.clickRemoveSelected)
@@ -66,61 +74,94 @@ class ProjectSelectorView(ttk.Frame):
 
     def clickRemoveSelected(self):
         if self.controller:
-            self.controller.register()
+            self.controller.removeSelected()
 
     def clickAddProject(self):
         if self.controller:
-            self.controller.register()
+            self.controller.addProject()
 
     def clickSeeInfo(self):
         if self.controller:
-            self.controller.register()
+            self.controller.seeInfo()
 
+    def clickTwiceChooseProject(self, event):
+        if self.controller:
+            self.controller.chooseProject()
 
 class ProjectSelectorController:
-    def __init__(self, view, user):
+    def __init__(self, view, app):
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
         self.view = view
-        mydb = mysql.connector.connect(
+        self.app = app
+        self.mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Ch0keYourselfT0Sle#p"
+        password=databasePassword
         )
-        mycursor = mydb.cursor()
+        mycursor = self.mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("Select `project_name` FROM Users U INNER JOIN projectmember PM ON U.`email` = PM.`member_email` WHERE U.`username` = '{}' ".format(user.getUsername()))
+        mycursor.execute("Select `project_name` FROM Users U INNER JOIN projectmember PM ON U.`email` = PM.`member_email` WHERE U.`username` = '{}' ".format(app.user.getUsername()))
         projects= mycursor.fetchall()
         for i in projects:
             view.projectList.append(i[0])
         view.pList.set(view.projectList)
 
-
-    def login(self,username, password):
-        mydb = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Ch0keYourselfT0Sle#p"
-        )
-        mycursor = mydb.cursor()
+    def refreshProjectList(self):
+        self.mydb.reconnect(attempts=1, delay=0)
+        mycursor = self.mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("SELECT `username`, `password` FROM Users")
-        loginInfo = mycursor.fetchall()
-        for i in loginInfo:
-            if username == i[0] and password == i[1]:
-                mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = '{}'".format(i[0]))
-                loginInfo = mycursor.fetchall()[0]
-                loginUser = User(loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3])
-                self.view.showMessage("Login Succedded")
-                break
-            else:
-                self.view.showError("Invalid info")
+        mycursor.execute("Select `project_name` FROM Users U INNER JOIN projectmember PM ON U.`email` = PM.`member_email` WHERE U.`username` = '{}' ".format(self.app.user.getUsername()))
+        projects= mycursor.fetchall()
+        self.view.projectList = []
+        for i in projects:
+            self.view.projectList.append(i[0])
+        self.view.pList.set(self.view.projectList)
     
-    def register(self):
-        self.registerWindow = RegisterApp()
+    def addProject(self):
+        projectAdderWindow = ProjectAdderApp(self.app.user)
+        self.app.wait_window(projectAdderWindow)
+        self.refreshProjectList()
+
+    def removeSelected(self):
+        answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this project and all its data forever")
+        if answer:
+            mycursor = self.mydb.cursor()
+            mycursor.execute("USE InformationManagementSystem;")
+            currentSelection = self.view.projectListBox.curselection()
+            toBeDeleted = self.view.projectListBox.get(currentSelection[0])
+            mycursor.execute("DELETE FROM `informationmanagementsystem`.`Project` WHERE (`name` = '{}');".format(toBeDeleted))
+            self.mydb.commit()
+            self.refreshProjectList()
+
+    def seeInfo(self):
+        popup = tk.Toplevel()
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        currentSelection = self.view.projectListBox.curselection()
+        toBeChecked = self.view.projectListBox.get(currentSelection[0])
+        mycursor.execute("SELECT `name`, `start_date`, `end_date`, `description` FROM `Project` WHERE (`name` = '{}');".format(toBeChecked))
+        projectInfo = mycursor.fetchall()[0]
+        #Labels for project's duration
+        startDateLabel = ttk.Label(popup,text= "Project's start date: {}".format(projectInfo[1].strftime("%Y-%m-%d")))
+        startDateLabel.grid(row=0)
+        endDateLabel = ttk.Label(popup,text= "Project's end date: {}".format(projectInfo[2].strftime("%Y-%m-%d")))
+        endDateLabel.grid(row=1)
+        
+        #textbox 
+        descriptionText= ScrolledText(popup, width = 50, height = 10)
+        descriptionText.grid(row= 2, padx=10, pady=10)
+        descriptionText.insert('1.0',projectInfo[3])
+        descriptionText['state'] = 'disabled'
+    
+    def chooseProject(self):
+        pass
+
 class ProjectSelectorApp(tk.Tk):
     def __init__(self,user):
         super().__init__()
-        
-        self.title("Login")
+        self.user = user
+        self.title("Select a project")
         self.geometry("800x600")
         #create a view and place it on the root window
         view = ProjectSelectorView(self)
@@ -131,7 +172,7 @@ class ProjectSelectorApp(tk.Tk):
         view.rowconfigure(0, weight=1)
         view.columnconfigure(0, weight=1)
         #create the login controller
-        controller = ProjectSelectorController(view,user)
+        controller = ProjectSelectorController(view,self)
         
 
         view.setController(controller)

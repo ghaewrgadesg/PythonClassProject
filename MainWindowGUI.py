@@ -69,18 +69,14 @@ class LoginController:
     def __init__(self, view, app):
         self.view = view
         self.app = app
-        with open("databasePassword.txt") as f:
-            databasePassword = f.readline().rstrip()
-        self.mydb = mysql.connector.connect(
+
+    def login(self,username, password):
+        mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password=databasePassword
+        password="Ch0keYourselfT0Sle#p"
         )
-    
-    def login(self,username, password):
-
-        
-        mycursor = self.mydb.cursor()
+        mycursor = mydb.cursor()
         mycursor.execute("USE InformationManagementSystem;")
         mycursor.execute("SELECT `username`, `password` FROM Users")
         loginInfo = mycursor.fetchall()
@@ -112,5 +108,8 @@ class LoginApp(tk.Tk):
 
         view.setController(controller)
 if __name__ == '__main__':
+    global databasePassword
+    with open("databasePassword.txt") as f:
+        databasePassword = f.readline().rstrip()
     app = LoginApp()
     app.mainloop()
