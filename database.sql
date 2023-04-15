@@ -10,8 +10,7 @@ create table if not exists `Users`(
     `username` varchar(50) NOT NULL,
     `password` varchar(100) NOT NULL,
     Primary key (`email`),
-    Unique(`username`),
-    Unique(`password`)
+    Unique(`username`)
 );
 
 -- -----------------------------------------------------

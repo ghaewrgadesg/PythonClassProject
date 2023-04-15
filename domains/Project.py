@@ -113,6 +113,28 @@ class Project:
     def getPlannedBudget(self): 
         return self.__plannedBudget
     
+    def updateName(self, newName):
+        """
+        Update the name of this project in the database
+        :return:
+        """
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        oldName = self.__name
+        try:
+            self.setName(newName)
+        except ValueError as error:
+            print(error)
+            return
+        mycursor.execute("USE InformationManagementSystem;")
+        mycursor.execute("UPDATE `Project SET `name` = '{}' WHERE `name` = '{}'".format(newName, oldName))
+        mydb.commit()
     
     def update(self):
         """

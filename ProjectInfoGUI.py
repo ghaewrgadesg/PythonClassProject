@@ -4,7 +4,7 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesno
 from tkcalendar import Calendar
-from datetime import date
+from datetime import date, datetime
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
 from TaskAdderGUI import TaskAdderApp, TaskAdderController, TaskAdderView
@@ -38,7 +38,7 @@ class ProjectInfoWindowView(ttk.Frame):
         self.descriptionLabel.grid(row=4, column = 0)
 
         #Button to change the content
-        self.nameChangeButton = ttk.Button(self.projectFrame, text = 'Change Name')
+        self.nameChangeButton = ttk.Button(self.projectFrame, text = 'Change Name', command = self.clickChangeName)
         self.nameChangeButton.grid(row= 1, column= 1)
         self.startDateButton = ttk.Button(self.projectFrame, text = 'Change Date', command= self.clickStartDate)
         self.startDateButton.grid(row=2, column=1)
@@ -92,9 +92,9 @@ class ProjectInfoWindowView(ttk.Frame):
         self.treeScrollbar.grid(row=1, column=2, sticky='ns')
 
         #Buttons
-        self.addMemberButton = ttk.Button(self.memberFrame, text= "Add Member")
+        self.addMemberButton = ttk.Button(self.memberFrame, text= "Add Member", command= self.clickAddMember)
         self.addMemberButton.grid(row = 2,column=0)
-        self.removeMemberButton = ttk.Button(self.memberFrame, text= "Remove Member")
+        self.removeMemberButton = ttk.Button(self.memberFrame, text= "Remove Member", command = self.clickRemoveMember)
         self.removeMemberButton.grid(row= 2, column= 1)
 
 
@@ -137,6 +137,17 @@ class ProjectInfoWindowView(ttk.Frame):
         if self.controller:
             self.controller.changeBudget()
 
+    def clickAddMember(self):
+        if self.controller:
+            self.controller.addMember()
+
+    def clickRemoveMember(self):
+        if self.controller:
+            self.controller.removeMember()
+
+    def clickChangeName(self):
+        if self.controller:
+            self.controller.changeName()
 
     def refreshSelfInfo(self):
         if self.controller:
@@ -175,7 +186,11 @@ class ProjectInfoWindowController:
         mycursor.execute("SELECT SUM(`cost`) from `tasks` where `project_name` = '{}';".format(self.app.project.getName()))
         self.view.plannedBudgetValue['text'] = mycursor.fetchall()[0][0]
         self.view.descriptionTextbox.insert('1.0',self.app.project.getDescription())
-        self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
+        try:
+            self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
+        except ValueError:
+            self.view.plannedBudgetValue['text']=0
+            self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
     def refreshInfo(self):
         self.mydb.reconnect(attempts=1, delay=0)
         mycursor = self.mydb.cursor()
@@ -202,7 +217,11 @@ class ProjectInfoWindowController:
         self.view.plannedBudgetValue['text'] = mycursor.fetchall()[0][0]
         self.view.descriptionTextbox.delete('1.0', tk.END)
         self.view.descriptionTextbox.insert('1.0',self.app.project.getDescription())
-        self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
+        try:
+            self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
+        except ValueError:
+            self.view.plannedBudgetValue['text']=0
+            self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
 
     def pickStartDate(self, view):
         root = tk.Toplevel()
@@ -218,7 +237,7 @@ class ProjectInfoWindowController:
         
         def getDate():
             view.startDateButton['text']= cal.get_date()
-            self.app.project.setStartDate(cal.get_date())
+            self.app.project.setStartDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
             self.app.project.update()
             root.destroy()
         
@@ -232,6 +251,7 @@ class ProjectInfoWindowController:
  
         # Set geometry
         todayDate = self.app.project.getEndDate().strftime('%Y-%m-%d').split('-')
+        
         # Add Calendar
         cal = Calendar(root, selectmode = 'day',
                     year = int(todayDate[0]), month = int(todayDate[1]),
@@ -241,7 +261,7 @@ class ProjectInfoWindowController:
         
         def getDate():
             view.endDateButton['text']= cal.get_date()
-            self.app.project.setEndDate(cal.get_date())
+            self.app.project.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
             self.app.project.update()
             root.destroy()
         
@@ -280,8 +300,83 @@ class ProjectInfoWindowController:
         confirmBudgetButton = ttk.Button(changeBudgetFrame, text= "Confirm change", command = changeBudget)
         confirmBudgetButton.grid(row= 2, column= 0)
 
+    def addMember(self):
+        addMemberWindow = tk.Toplevel()
+
+        addMemberFrame = ttk.Frame(addMemberWindow)
+        addMemberFrame.grid(row= 0, column= 0, padx =10, pady= 10)
         
-        
+        #Search box entry
+        searchEntry = ttk.Entry(addMemberFrame, width = 30)
+        searchEntry.grid(row = 0, column= 0)
+
+
+        #Listbox for the members
+        memberVar = tk.StringVar()
+        memberBox = tk.Listbox(addMemberFrame, width= 30, listvariable= memberVar)
+        memberBox.grid(row = 1, column = 0, pady =5)
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        mycursor.execute("SELECT `email` FROM `users` WHERE `email` NOT IN (select `member_email` from `projectmember` WHERE `project_name` = '{}');".format(self.app.project.getName()))
+        memberList = mycursor.fetchall()
+        memberVar.set(memberList)
+        def Scankey(event):
+            
+            val = event.widget.get()
+            
+
+            if val == '':
+                data = memberList
+            else:
+                data = []
+                for item in memberList[0]:
+                    if val.lower() in item.lower():
+                        data.append(item)				
+
+            
+            update(data)
+
+
+        def update(data):
+            memberVar.set(data)
+
+        def chooseMember(event):
+            currentSelection = memberBox.curselection()
+            toBeChecked = memberBox.get(currentSelection[0])
+            mycursor = self.mydb.cursor()
+            mycursor.execute("USE InformationManagementSystem;")
+            mycursor.execute("SELECT `name`, `email` FROM `users` WHERE `email` = '{}';".format(toBeChecked[0]))
+            memberList = mycursor.fetchall()[0]
+            self.app.project.getMemberList().append(memberList)
+            self.app.project.update()
+            self.refreshInfo()
+
+
+        #Bind the search function
+        searchEntry.bind('<KeyRelease>', Scankey)
+        #bind double click action to listbox
+        memberBox.bind('<Double-1>', chooseMember)
+
+    def removeMember(self):
+        currentItem = self.view.memberTree.focus()
+        currentSelection = self.view.memberTree.item(currentItem)
+        selectedValue = currentSelection['values']
+        self.app.project.getMemberList().remove(tuple(selectedValue))
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        mycursor.execute("DELETE FROM `ProjectMember` WHERE (`member_email` = '{}') and (`project_name` = '{}');".format(selectedValue[1], self.app.project.getName()))
+        self.mydb.commit()
+        self.refreshInfo()
+
+    def changeName(self):
+        """
+        TO BE FINISHED
+        """
+        changeNameWindow = tk.Toplevel()
+
+        #Frame
+        changeNameFrame = ttk.Frame()
+
 
     def login(self):
         mycursor = self.mydb.cursor()
@@ -300,7 +395,7 @@ class ProjectInfoWindowApp(tk.Tk):
         super().__init__()
         self.user = user
         self.project = project
-        self.title("Login")
+        self.title("Project Info")
 
         #create a view and place it on the root window
         view = ProjectInfoWindowView(self)

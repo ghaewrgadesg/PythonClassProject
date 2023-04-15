@@ -11,7 +11,7 @@ VALUES ('bthung22@gmail.com', 'VTP', 'phongGaming', 'SeeTheLight');
 -- adding data to `InformationManagementSystem`.`Project`
 -- -----------------------------------------------------
 INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES('Killing the world', 'bthung2003@gmail.com', '2023-4-20', '2023-5-20', 'to test is to prosper');
-INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES('Saving', 'bthung2003@gmail.com', '2023-4-23', '2023-5-25', 'to save is to survive');
+INSERT INTO `Project` (`name`, `manager_email`, `start_date`, `end_date`, `description`) VALUES('Saving the world', 'bthung2003@gmail.com', '2023-4-23', '2023-5-25', 'to save is to survive');
 -- -----------------------------------------------------
 -- adding data to `InformationManagementSystem`.`Tasks`
 -- -----------------------------------------------------
