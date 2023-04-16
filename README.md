@@ -40,6 +40,13 @@ Team members:
 Topic: Project Information Management System
 
 =====================================================
+
 To run the program, you must first create your own MySQL database using the SQL text files
+
+
+
 Change the password in databasePassword.txt to your mySQL password
+
+
+
 run the main.py file
