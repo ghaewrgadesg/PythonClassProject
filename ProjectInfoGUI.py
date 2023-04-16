@@ -52,7 +52,7 @@ class ProjectInfoWindowView(ttk.Frame):
         #For the Budget frame
         #Labels
         self.budgetNameLabel = ttk.Label(self.budgetFrame, text = "Project's Budget: ")
-        self.budgetNameLabel.grid(row = 0, column= 0)
+        self.budgetNameLabel.grid(row = 0, column= 0, columnspan = 2)
         self.potentialBudgetLabel = ttk.Label(self.budgetFrame, text = "Potential Budget: ")
         self.potentialBudgetLabel.grid(row =1, column=0)
         self.plannedBudgetLabel = ttk.Label(self.budgetFrame, text = "Planned Budget: ")
@@ -112,10 +112,6 @@ class ProjectInfoWindowView(ttk.Frame):
     """
     def setController(self, controller):
         self.controller = controller
-
-    def clickLogin(self):
-        if self.controller:
-            self.controller.login()
     
     def clickStartDate(self):
         if self.controller:
@@ -191,6 +187,17 @@ class ProjectInfoWindowController:
         except ValueError:
             self.view.plannedBudgetValue['text']=0
             self.view.currentBudgetValue['text'] = int(self.app.project.getPotentialBudget()) - int(self.view.plannedBudgetValue['text'])
+        #For when the user is not the manager
+        if self.app.user.getEmail() != self.app.project.getManagerEmail():
+            self.view.nameChangeButton['state'] = 'disabled'
+            self.view.startDateButton['state'] = 'disabled'
+            self.view.endDateButton['state'] = 'disabled'
+            self.view.potentialBudgetButton['state'] = 'disabled'
+            self.view.descriptionTextbox['state'] = 'disabled'
+            self.view.addMemberButton.grid_remove()
+            self.view.removeMemberButton.grid_remove()
+
+
     def refreshInfo(self):
         self.mydb.reconnect(attempts=1, delay=0)
         mycursor = self.mydb.cursor()
@@ -239,6 +246,7 @@ class ProjectInfoWindowController:
             view.startDateButton['text']= cal.get_date()
             self.app.project.setStartDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
             self.app.project.update()
+            self.mydb.reconnect(attempts=1, delay=0)
             root.destroy()
         
         # Add Button and Label
@@ -263,6 +271,7 @@ class ProjectInfoWindowController:
             view.endDateButton['text']= cal.get_date()
             self.app.project.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
             self.app.project.update()
+            self.mydb.reconnect(attempts=1, delay=0)
             root.destroy()
         
         # Add Button and Label
@@ -319,6 +328,10 @@ class ProjectInfoWindowController:
         mycursor.execute("USE InformationManagementSystem;")
         mycursor.execute("SELECT `email` FROM `users` WHERE `email` NOT IN (select `member_email` from `projectmember` WHERE `project_name` = '{}');".format(self.app.project.getName()))
         memberList = mycursor.fetchall()
+        if memberList == []:
+            addMemberWindow.destroy()
+            print("No more people to add")
+            return
         memberVar.set(memberList)
         def Scankey(event):
             
@@ -344,10 +357,16 @@ class ProjectInfoWindowController:
             currentSelection = memberBox.curselection()
             toBeChecked = memberBox.get(currentSelection[0])
             mycursor = self.mydb.cursor()
+            mycursor = self.mydb.cursor()
+            mycursor.execute("USE InformationManagementSystem;")
+            mycursor.execute("SELECT `email` FROM `users` WHERE `email` NOT IN (select `member_email` from `projectmember` WHERE `project_name` = '{}');".format(self.app.project.getName()))
+            memberList = mycursor.fetchall()
+            memberList.remove(toBeChecked)
+            memberVar.set(memberList)
             mycursor.execute("USE InformationManagementSystem;")
             mycursor.execute("SELECT `name`, `email` FROM `users` WHERE `email` = '{}';".format(toBeChecked[0]))
-            memberList = mycursor.fetchall()[0]
-            self.app.project.getMemberList().append(memberList)
+            pMemberList = mycursor.fetchall()[0]
+            self.app.project.getMemberList().append(pMemberList)
             self.app.project.update()
             self.refreshInfo()
 
@@ -361,33 +380,49 @@ class ProjectInfoWindowController:
         currentItem = self.view.memberTree.focus()
         currentSelection = self.view.memberTree.item(currentItem)
         selectedValue = currentSelection['values']
-        self.app.project.getMemberList().remove(tuple(selectedValue))
-        mycursor = self.mydb.cursor()
-        mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("DELETE FROM `ProjectMember` WHERE (`member_email` = '{}') and (`project_name` = '{}');".format(selectedValue[1], self.app.project.getName()))
-        self.mydb.commit()
-        self.refreshInfo()
+        if selectedValue[1] != self.app.project.getManagerEmail():
+            self.app.project.getMemberList().remove(tuple(selectedValue))
+            mycursor = self.mydb.cursor()
+            mycursor.execute("USE InformationManagementSystem;")
+            mycursor.execute("DELETE FROM `ProjectMember` WHERE (`member_email` = '{}') and (`project_name` = '{}');".format(selectedValue[1], self.app.project.getName()))
+            self.mydb.commit()
+            self.refreshInfo()
+        else:
+            print("Can't remove manager")
 
     def changeName(self):
-        """
-        TO BE FINISHED
-        """
         changeNameWindow = tk.Toplevel()
 
-        #Frame
-        changeNameFrame = ttk.Frame()
+        changeNameFrame = ttk.Frame(changeNameWindow)
+        changeNameFrame.grid(row= 0, column= 0, padx =10, pady= 10)
+        
+        #Search box entry
+        nameEntry = ttk.Entry(changeNameFrame, width = 30)
+        nameEntry.grid(row = 0, column= 0)
+
+        #Message in case of error
+        messageLabel = ttk.Label(changeNameFrame, text='', foreground='red')
+        messageLabel.grid(row=2, column=0, sticky=tk.W)
+
+        def showError(message):
+            messageLabel['text'] = message
+            messageLabel['foreground'] = 'red'
+            
+
+        def changeName():
+                newName = nameEntry.get()
+                try:
+                    self.app.project.updateName(newName)
+                    self.refreshInfo()
+                    changeNameWindow.destroy()
+                except mysql.connector.IntegrityError:
+                    showError("There's already a project with that name")
 
 
-    def login(self):
-        mycursor = self.mydb.cursor()
-        mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("SELECT `username`, `password` FROM Users")
-        loginInfo = mycursor.fetchall()
-    
-    
-
-    
-
+        #Name change button
+        changeNameButton = ttk.Button(changeNameFrame, text="Change Name", command=changeName)
+        changeNameButton.grid(row=1, column= 0, padx=5, pady=5)
+        
 
 
 class ProjectInfoWindowApp(tk.Tk):
@@ -401,7 +436,7 @@ class ProjectInfoWindowApp(tk.Tk):
         view = ProjectInfoWindowView(self)
         view.grid(row = 0, column = 0, padx = 10, pady = 10)
 
-        #create the login controller
+        #create the project info controller
         controller = ProjectInfoWindowController(view,self)
 
         view.setController(controller)

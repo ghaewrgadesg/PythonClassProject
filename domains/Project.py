@@ -133,7 +133,7 @@ class Project:
             print(error)
             return
         mycursor.execute("USE InformationManagementSystem;")
-        mycursor.execute("UPDATE `Project SET `name` = '{}' WHERE `name` = '{}'".format(newName, oldName))
+        mycursor.execute("UPDATE `Project` SET `name` = '{}' WHERE `name` = '{}'".format(newName, oldName))
         mydb.commit()
     
     def update(self):

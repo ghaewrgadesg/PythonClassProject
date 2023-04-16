@@ -59,31 +59,25 @@ class Task:
         self.__assignedMemberList = members
 
     #Creating the getter
-    def get_name(self):
+    def getName(self):
         return self.__name
    
-    def get_startDate(self):
+    def getStartDate(self):
         return self.__startDate
    
-    def get_status(self, status): 
+    def getStatus(self): 
         return self.__status
    
-    def get_endDate(self):
+    def getEndDate(self):
         return self.__endDate
    
-    def get_description(self):
+    def getDescription(self):
         return self.__description
     
-    def get_mem_list(self):
+    def getMemList(self):
         return self.__assignedMemberList
     
-    #saving the task to the database
-    def save(self, projectName):
-        """
-        save the data of this task into the database
-        :return:
-        """
-        global databasePassword
+    def updateName(self, projectName, newName):
         with open("databasePassword.txt") as f:
             databasePassword = f.readline().rstrip()
         mydb = mysql.connector.connect(
@@ -101,7 +95,59 @@ class Task:
         endDate: date
         status: String
         """
-        mycursor.execute("INSERT IGNORE INTO `Tasks` (`name`, `start_date`, `end_date`, `description`, `cost`, `project_name`) VALUES ('{}', '{}', '{}', '{}', '{}', '{}');".format(self.__name,  self.__startDate, self.__endDate, self.__description, self.__cost, projectName))
+        mycursor.execute("UPDATE `tasks` SET `name` = '{}' WHERE `name` = '{}' AND `project_name` = '{}'".format(newName, self.__name, projectName))
+        #commit the changes to database 
+        mydb.commit()
+
+    def update(self, projectName):
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        print("test")
+        """ 
+        cost: Int
+        name: String
+        startDate: date 
+        endDate: date
+        status: String
+        """
+        mycursor.execute("UPDATE `tasks` SET `cost` = {}, `start_date` = '{}', `end_date` = '{}', `status` = '{}' WHERE `name` = '{}' AND `project_name` = '{}'".format(self.__cost, self.__startDate, self.__endDate, self.__status, self.__name, projectName))
+        for i in self.__assignedMemberList:
+            print("INSERT IGNORE INTO `AssignedTaskMember` (`member_email`, `project_name`, `task_name`) VALUES ('{}', '{}', '{}');".format(i, projectName, self.__name))
+            mycursor.execute("INSERT IGNORE INTO `AssignedTaskMember` (`member_email`, `project_name`, `task_name`) VALUES ('{}', '{}', '{}');".format(i[0], projectName, self.__name)) 
+        #commit the changes to database 
+        mydb.commit()
+
+    #saving the task to the database
+    def save(self, projectName):
+        """
+        save the data of this task into the database
+        :return:
+        """
+        with open("databasePassword.txt") as f:
+            databasePassword = f.readline().rstrip()
+        mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password=databasePassword
+        )
+        mycursor = mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        print("test")
+        """ 
+        cost: Int
+        name: String
+        startDate: date 
+        endDate: date
+        status: String
+        """
+        mycursor.execute("INSERT IGNORE INTO `Tasks` (`name`, `start_date`, `end_date`, `description`, `cost`, `project_name`, `status`) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(self.__name,  self.__startDate, self.__endDate, self.__description, self.__cost, projectName, self.__status))
         #commit the changes to database
 
         mydb.commit()
