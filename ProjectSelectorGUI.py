@@ -133,7 +133,7 @@ class ProjectSelectorController:
         toBeDeleted = self.view.projectListBox.get(currentSelection[0])
         mycursor.execute("SELECT `manager_email` FROM `Project` where `name` = '{}'".format(toBeDeleted))
         managerEmail = mycursor.fetchall()[0]
-        if managerEmail == self.app.user.getEmail():
+        if managerEmail[0] == self.app.user.getEmail():
             answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this project and all its data forever")
             if answer:
                 mycursor.execute("DELETE FROM `informationmanagementsystem`.`Project` WHERE (`name` = '{}');".format(toBeDeleted))

@@ -192,7 +192,7 @@ class TaskWindowController:
         self.refreshTaskList()
 
     def removeTask(self):
-        answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this project and all its data forever")
+        answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this task and all its data forever")
         if answer:
             mycursor = self.mydb.cursor()
             mycursor.execute("USE InformationManagementSystem;")
