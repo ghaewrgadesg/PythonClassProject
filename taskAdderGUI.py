@@ -160,7 +160,6 @@ class TaskAdderApp(tk.Toplevel):
     def __init__(self, projectName):
         super().__init__()
         self.projectName = projectName
-        self.title("Add a Task")
         #create a view and place it on the root window
         view = TaskAdderView(self)
         view.grid(row = 0, column = 0, padx = 10, pady = 10)

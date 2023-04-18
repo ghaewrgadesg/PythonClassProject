@@ -2,6 +2,7 @@ from domains import Task, Project, User
 import tkinter as tk
 from tkinter import ttk
 import mysql.connector
+from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
 from TaskWindowGUI import TaskWindowApp, TaskWindowController, TaskWindowView
 from ProjectInfoGUI import ProjectInfoWindowApp, ProjectInfoWindowController, ProjectInfoWindowView
 class MainWindowView(ttk.Notebook):
@@ -71,7 +72,7 @@ class MainWindowApp(tk.Tk):
         super().__init__()
         self.user = user
         self.project = project
-        self.title("MainWindow")
+        self.title("Main Window")
 
         #create a view and place it on the root window
         view = MainWindowView(self)

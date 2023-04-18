@@ -74,7 +74,6 @@ class User:
         return self.__email
     
     def save(self):
-        global databasePassword
         with open("databasePassword.txt") as f:
             databasePassword = f.readline().rstrip()
             print(databasePassword)

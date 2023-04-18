@@ -176,6 +176,7 @@ class ProjectSelectorController:
         mycursor.execute("SELECT `potential_budget`, `plan_budget` FROM `ProjectBudget` WHERE (`project_name` = '{}');".format(toBeChecked))
         projectBudgetInfo = mycursor.fetchall()[0]
         chosenProject = Project(projectInfo[0],projectInfo[1],projectInfo[2], projectInfo[3],projectBudgetInfo[0],projectBudgetInfo[1],projectInfo[4])
+        self.app.destroy()
         mainWindow = MainWindowApp(self.app.user,chosenProject)
         mainWindow.mainloop()
 

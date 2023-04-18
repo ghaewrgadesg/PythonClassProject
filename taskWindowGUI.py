@@ -412,8 +412,8 @@ class TaskWindowController:
                     data = memberList
                 else:
                     data = []
-                    for item in memberList[0]:
-                        if val.lower() in item.lower():
+                    for item in memberList:
+                        if val.lower() in item[0].lower():
                             data.append(item)				
 
                 

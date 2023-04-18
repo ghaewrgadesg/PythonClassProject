@@ -14,14 +14,15 @@ class LoginView(ttk.Frame):
         self.usernameLabel.grid(row = 1, column = 0, columnspan = 2)
         self.passwordLabel = ttk.Label(self, text = 'Password')
         self.passwordLabel.grid(row = 3, column = 0, columnspan = 2)
+        
 
         #textbox
         self.usernameVar = tk.StringVar()
         self.passwordVar = tk.StringVar()
-        self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 30)
-        self.usernameEntry.grid(row = 2, column = 0, columnspan = 2, sticky = tk.NSEW)
-        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 30, show="*")
-        self.passwordEntry.grid(row = 4, column = 0, columnspan = 2, sticky = tk.NSEW)
+        self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 60)
+        self.usernameEntry.grid(row = 2, column = 0, columnspan = 2)
+        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 60, show="*")
+        self.passwordEntry.grid(row = 4, column = 0, columnspan = 2)
 
         #Login button
         self.loginButton = ttk.Button(self, text = "Login", command=self.clickLogin)
@@ -102,10 +103,9 @@ class LoginApp(tk.Tk):
         super().__init__()
         
         self.title("Login")
-
         #create a view and place it on the root window
         view = LoginView(self)
-        view.grid(row = 0, column = 0, padx = 10, pady = 10)
+        view.grid(row = 0, column = 1, padx = 10, pady = 10)
 
         #create the login controller
         controller = LoginController(view,self)

@@ -27,15 +27,15 @@ class RegisterView(ttk.Frame):
         self.nameVar = tk.StringVar()
         self.emailVar = tk.StringVar()
         
-        self.nameEntry = ttk.Entry(self, textvariable=self.nameVar,width = 30)
+        self.nameEntry = ttk.Entry(self, textvariable=self.nameVar,width = 70)
         self.nameEntry.grid(row = 2, column = 0, sticky = tk.NSEW, columnspan = 2)
-        self.emailEntry = ttk.Entry(self, textvariable= self.emailVar, width = 30)
+        self.emailEntry = ttk.Entry(self, textvariable= self.emailVar, width = 70)
         self.emailEntry.grid(row = 4, column = 0, columnspan = 2, sticky = tk.NSEW)
-        self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 30)
+        self.usernameEntry = ttk.Entry(self, textvariable=self.usernameVar, width = 70)
         self.usernameEntry.grid(row = 6, column = 0, sticky = tk.NSEW, columnspan = 2)
-        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 30, show="*")
+        self.passwordEntry = ttk.Entry(self, textvariable=self.passwordVar, width = 70, show="*")
         self.passwordEntry.grid(row = 8, column = 0 , sticky = tk.NSEW, columnspan = 2)
-        self.confirmpasswordEntry = ttk.Entry(self, textvariable=self.confirmPasswordVar, width = 30, show="*")
+        self.confirmpasswordEntry = ttk.Entry(self, textvariable=self.confirmPasswordVar, width = 70, show="*")
         self.confirmpasswordEntry.grid(row = 10, column = 0 , sticky = tk.NSEW, columnspan = 2)
         
         #register button

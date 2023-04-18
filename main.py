@@ -4,6 +4,5 @@ from tkinter import ttk
 import mysql.connector
 from LoginWindowGUI import LoginView, LoginController, LoginApp
 
-
 app = LoginApp()
 app.mainloop()
