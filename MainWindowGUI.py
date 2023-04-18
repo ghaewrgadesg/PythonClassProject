@@ -2,7 +2,6 @@ from domains import Task, Project, User
 import tkinter as tk
 from tkinter import ttk
 import mysql.connector
-from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
 from TaskWindowGUI import TaskWindowApp, TaskWindowController, TaskWindowView
 from ProjectInfoGUI import ProjectInfoWindowApp, ProjectInfoWindowController, ProjectInfoWindowView
 class MainWindowView(ttk.Notebook):
@@ -21,6 +20,7 @@ class MainWindowView(ttk.Notebook):
         #set the controller
         self.controller = None
         self.bind('<<NotebookTabChanged>>',self.onTabChange)
+    
     def setController(self, controller):
         self.controller = controller
 

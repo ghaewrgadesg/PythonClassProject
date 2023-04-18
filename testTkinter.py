@@ -1,49 +1,23 @@
+import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import *
+import tkcalendar
+from tkcalendar import Calendar, DateEntry
+import datetime
 
+root = tk.Tk()
 
-def Scankey(event):
-	
-	val = event.widget.get()
-	print(val)
-	
+events={'2018-09-28':('London','meeting'),\
+    '2018-08-15':('Paris','meeting'),\
+    '2018-07-30':('New York','meeting')}
 
-	if val == '':
-		data = list
-	else:
-		data = []
-		for item in list:
-			if val.lower() in item.lower():
-				data.append(item)				
+cal = Calendar(root, selectmode='day', year=2018, month=8)
 
-	
-	Update(data)
+for k in events.keys():
+    date=datetime.datetime.strptime(k,"%Y-%m-%d").date()
+    cal.calevent_create(date, events[k][0], events[k][1])
 
+cal.tag_config('meeting', background='red', foreground='yellow')
+cal.pack(fill="both", expand=True)
 
-def Update(data):
-	
-
-	listbox.delete(0, 'end')
-
-	# put new data
-	for item in data:
-		listbox.insert('end', item)
-
-
-
-list = ('C','C++','Java',
-	'Python','Perl',
-	'PHP','ASP','JS' )
-
-ws = Tk()
-
-
-entry = Entry(ws)
-entry.pack()
-entry.bind('<KeyRelease>', Scankey)
-
-
-listbox = Listbox(ws)
-listbox.pack()
-Update(list)
-
-ws.mainloop()
+root.mainloop()

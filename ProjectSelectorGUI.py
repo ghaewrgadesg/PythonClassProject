@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import askyesno
 from tkinter.scrolledtext import ScrolledText
+from tkinter.messagebox import showerror
 import datetime
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
@@ -126,15 +127,24 @@ class ProjectSelectorController:
         self.refreshProjectList()
 
     def removeSelected(self):
-        answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this project and all its data forever")
-        if answer:
-            mycursor = self.mydb.cursor()
-            mycursor.execute("USE InformationManagementSystem;")
-            currentSelection = self.view.projectListBox.curselection()
-            toBeDeleted = self.view.projectListBox.get(currentSelection[0])
-            mycursor.execute("DELETE FROM `informationmanagementsystem`.`Project` WHERE (`name` = '{}');".format(toBeDeleted))
-            self.mydb.commit()
-            self.refreshProjectList()
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        currentSelection = self.view.projectListBox.curselection()
+        toBeDeleted = self.view.projectListBox.get(currentSelection[0])
+        mycursor.execute("SELECT `manager_email` FROM `Project` where `name` = '{}'".format(toBeDeleted))
+        managerEmail = mycursor.fetchall()[0]
+        if managerEmail == self.app.user.getEmail():
+            answer = askyesno(title = "Are you sure?", message= "Are you sure you want to delete this project and all its data forever")
+            if answer:
+                mycursor.execute("DELETE FROM `informationmanagementsystem`.`Project` WHERE (`name` = '{}');".format(toBeDeleted))
+                self.mydb.commit()
+                self.refreshProjectList()
+        else:
+            showerror(
+            title='Error',
+            message='You are not the manager of this project')
+
+
 
     def seeInfo(self):
         popup = tk.Toplevel()
@@ -166,7 +176,6 @@ class ProjectSelectorController:
         mycursor.execute("SELECT `potential_budget`, `plan_budget` FROM `ProjectBudget` WHERE (`project_name` = '{}');".format(toBeChecked))
         projectBudgetInfo = mycursor.fetchall()[0]
         chosenProject = Project(projectInfo[0],projectInfo[1],projectInfo[2], projectInfo[3],projectBudgetInfo[0],projectBudgetInfo[1],projectInfo[4])
-        self.app.destroy()
         mainWindow = MainWindowApp(self.app.user,chosenProject)
         mainWindow.mainloop()
 

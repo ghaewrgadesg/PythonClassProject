@@ -3,7 +3,7 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
-from tkinter.messagebox import askyesno
+from tkinter.messagebox import askyesno, showerror
 from tkcalendar import Calendar
 import mysql.connector
 from RegisterWindowGUI import RegisterView,RegisterController,RegisterApp
@@ -26,7 +26,12 @@ class TaskWindowView(ttk.Frame):
         #For listbox Frame
         #Label for tasks
         self.taskListLabel = ttk.Label(self.listBoxFrame, text= "Task List")
-        self.taskListLabel.grid(row = 0, sticky = tk.NSEW)
+        self.taskListLabel.grid(row = 0,column = 0, sticky = tk.NSEW)
+
+        #Sort task by start day
+        self.taskCalendarButton = ttk.Button(self.listBoxFrame, text= "See calendar", command= self.clickSeeCalendar)
+        self.taskCalendarButton.grid(row = 0, column = 2 )
+
 
         #listbox
         self.taskListBox = tk.Listbox(
@@ -133,6 +138,10 @@ class TaskWindowView(ttk.Frame):
     def clickRemoveMember(self):
         if self.controller:
             self.controller.removeMember()
+
+    def clickSeeCalendar(self):
+        if self.controller:
+            self.controller.seeTaskCalendar()
 
 class TaskWindowController:
     def __init__(self, view, app):
@@ -356,11 +365,14 @@ class TaskWindowController:
         cal.grid(row = 0)
         
         def getDate():
-            view.endDateButton['text']= cal.get_date()
-            self.selectedTask.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
-            self.selectedTask.update(self.app.project.getName())
-            root.destroy()
-        
+            if datetime.strptime(cal.get_date(),'%Y-%m-%d').date() > datetime.strptime(view.startDateButton['text'],'%Y-%m-%d').date():
+                view.endDateButton['text']= cal.get_date()
+                self.selectedTask.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
+                self.selectedTask.update(self.app.project.getName())
+                self.mydb.reconnect(attempts=1, delay=0)
+                root.destroy()
+            else:
+                showerror('Wrong date', 'End date cannot be earlier than start date')
         # Add Button and Label
         getSelectedDateButton = ttk.Button(root, text = "Get Date",command = getDate)
         getSelectedDateButton.grid(row =1)
@@ -444,12 +456,46 @@ class TaskWindowController:
         self.mydb.commit()
         self.refreshSelectedInfo()
 
+    def seeTaskCalendar(self):
+        taskCalendarWindow = tk.Toplevel()
+
+        mycursor = self.mydb.cursor()
+        mycursor.execute("USE InformationManagementSystem;")
+        mycursor.execute("SELECT `start_date`, `name` FROM `tasks` WHERE (`project_name` = '{}');".format(self.app.project.getName()))
+        events = mycursor.fetchall()
+        cal = Calendar(taskCalendarWindow, selectmode='day', date_pattern = 'yyyy-mm-dd')
+        print(events)
+
+        for k in events:
+            cal.calevent_create(k[0], k[1], 'task')
+
+        cal.tag_config('task', background='red', foreground='yellow')
+        cal.pack(fill="both", expand=True)
+
+        def getEventOfDate(event):
+            eventIds = cal.get_calevents(datetime.strptime(cal.get_date(),"%Y-%m-%d").date())
+            taskList =[]
+            for i in eventIds:
+                taskName = cal.calevent_cget(i,'text')
+                taskList.append(taskName)
+            self.view.tList.set(taskList)
+
+        def onClose():
+            self.refreshTaskList()
+            taskCalendarWindow.destroy()
+
+        cal.bind('<<CalendarSelected>>',getEventOfDate)
+        taskCalendarWindow.protocol('WM_DELETE_WINDOW',onClose)
+
+        
+
+
 class TaskWindowApp(tk.Tk):
     def __init__(self, user, project):
         super().__init__()
         self.project = project
         self.user = user
-        self.title("Login")
+        self.title("Task Window")
 
         #create a view and place it on the root window
         view = TaskWindowView(self)
@@ -470,7 +516,7 @@ if __name__ == '__main__':
         )
     mycursor = mydb.cursor()
     mycursor.execute("USE InformationManagementSystem;")
-    mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = 'duyngu2003';")
+    mycursor.execute("SELECT `username`,`password`, `email`, `name` FROM Users WHERE `Username` = 'bthung2003';")
     loginInfo = mycursor.fetchall()[0]
     loginUser = User(loginInfo[0], loginInfo[1], loginInfo[2], loginInfo[3])
     mycursor.execute("SELECT `name`,`manager_email`, `start_date`, `end_date`, `description` FROM `Project` WHERE (`name` = 'Killing the world');")

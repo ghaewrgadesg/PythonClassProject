@@ -2,7 +2,8 @@ from domains import Task, Task, User
 import tkinter as tk
 from tkinter import ttk
 import mysql.connector
-from datetime import date
+from tkinter.messagebox import showerror
+from datetime import date, datetime
 from tkcalendar import Calendar
 from tkinter.scrolledtext import ScrolledText
 class TaskAdderView(ttk.Frame):
@@ -133,8 +134,12 @@ class TaskAdderController:
         cal.grid(row = 0)
         
         def getDate():
-            view.endDateButton['text']= cal.get_date()
-            root.destroy()
+            if datetime.strptime(cal.get_date(),'%Y-%m-%d').date() > datetime.strptime(view.startDateButton['text'],'%Y-%m-%d').date():
+                view.endDateButton['text']= cal.get_date()
+                root.destroy()
+            else:
+                showerror('Wrong date', 'End date cannot be earlier than start date')
+            
         
         # Add Button and Label
         getSelectedDateButton = ttk.Button(root, text = "Get Date",command = getDate)

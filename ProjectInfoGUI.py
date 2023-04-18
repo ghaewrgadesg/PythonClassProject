@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import askyesno
+from tkinter.messagebox import showerror
 from tkcalendar import Calendar
 from datetime import date, datetime
 import mysql.connector
@@ -268,11 +269,14 @@ class ProjectInfoWindowController:
         cal.grid(row = 0)
         
         def getDate():
-            view.endDateButton['text']= cal.get_date()
-            self.app.project.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
-            self.app.project.update()
-            self.mydb.reconnect(attempts=1, delay=0)
-            root.destroy()
+            if datetime.strptime(cal.get_date(),'%Y-%m-%d').date() > datetime.strptime(view.startDateButton['text'],'%Y-%m-%d').date():
+                view.endDateButton['text']= cal.get_date()
+                self.app.project.setEndDate(datetime.strptime(cal.get_date(),'%Y-%m-%d'))
+                self.app.project.update()
+                self.mydb.reconnect(attempts=1, delay=0)
+                root.destroy()
+            else:
+                showerror('Wrong date', 'End date cannot be earlier than start date')
         
         # Add Button and Label
         getSelectedDateButton = ttk.Button(root, text = "Get Date",command = getDate)
